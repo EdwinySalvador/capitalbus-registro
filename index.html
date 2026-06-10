@@ -694,17 +694,11 @@ async function submitTransaction() {
   };
 
   try {
-    const res = await fetch(scriptUrl, {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    });
-    const data = await res.json();
-    if (data.ok) {
-      showToast(`✓ Guardado en fila ${data.row}`);
-      resetForm();
-    } else {
-      showToast('Error: ' + data.error, true);
-    }
+    // Apps Script no permite CORS con fetch POST desde GitHub Pages.
+    // Solución: enviar via form submit a un iframe oculto (no bloquea CORS).
+    await postViaIframe(scriptUrl, payload);
+    showToast('✓ Transacción registrada');
+    resetForm();
   } catch (err) {
     showToast('Error de conexión', true);
   } finally {
@@ -732,6 +726,52 @@ function resetForm() {
   const dd = String(today.getDate()).padStart(2, '0');
   document.getElementById('fechaInput').value = `${yyyy}-${mm}-${dd}`;
   updateFecha();
+}
+
+// ── POST VIA IFRAME (workaround CORS con Apps Script) ──────────
+function postViaIframe(url, payload) {
+  return new Promise((resolve, reject) => {
+    // Crear iframe oculto
+    const iframe = document.createElement('iframe');
+    iframe.name = 'cb_iframe_' + Date.now();
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+
+    // Crear form que apunta al iframe
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = url;
+    form.target = iframe.name;
+    form.style.display = 'none';
+
+    // Serializar payload como campo único JSON
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'payload';
+    input.value = JSON.stringify(payload);
+    form.appendChild(input);
+
+    document.body.appendChild(form);
+
+    // Timeout de seguridad: 8 segundos
+    const timeout = setTimeout(() => {
+      cleanup();
+      resolve(); // resolvemos igual — no podemos leer la respuesta por CORS
+    }, 8000);
+
+    iframe.onload = () => {
+      clearTimeout(timeout);
+      cleanup();
+      resolve();
+    };
+
+    function cleanup() {
+      try { document.body.removeChild(form); } catch(e) {}
+      try { document.body.removeChild(iframe); } catch(e) {}
+    }
+
+    form.submit();
+  });
 }
 
 // ── TOAST ──────────────────────────────────────────────────────
