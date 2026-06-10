@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0f0f1a">
+<title>CapitalBus · Registro</title>
+<style>
+  /* ── TOKENS ── */
+  :root {
+    --bg:       #0f0f1a;
+    --surface:  #1a1a2e;
+    --card:     #16213e;
+    --accent:   #e94560;
+    --accent2:  #0f3460;
+    --text:     #eaeaea;
+    --muted:    #8892a4;
+    --border:   #2a2a4a;
+    --green:    #2ecc71;
+    --font:     'Inter', system-ui, sans-serif;
+    --radius:   12px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    min-height: 100vh;
+    padding-bottom: 40px;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: var(--text);
+  }
+  .logo span { color: var(--accent); }
+  .badge {
+    background: var(--accent);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── LAYOUT ── */
+  main {
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 20px 16px;
+  }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+  }
+
+  /* ── FORM FIELDS ── */
+  .field { margin-bottom: 14px; }
+  label {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 5px;
+    font-weight: 500;
+  }
+  input, select, textarea {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 15px;
+    padding: 12px 14px;
+    outline: none;
+    transition: border-color .2s;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--accent);
+  }
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238892a4' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 40px;
+  }
+
+  /* ── AUTOCOMPLETE ── */
+  .autocomplete-wrap { position: relative; }
+  .autocomplete-list {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0; right: 0;
+    background: var(--surface);
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    max-height: 220px;
+    overflow-y: auto;
+    z-index: 200;
+    display: none;
+    scrollbar-width: thin;
+  }
+  .autocomplete-list.open { display: block; }
+  .ac-item {
+    padding: 11px 14px;
+    font-size: 14px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+    transition: background .15s;
+  }
+  .ac-item:last-child { border-bottom: none; }
+  .ac-item:hover, .ac-item.selected { background: var(--accent2); }
+  .ac-item mark {
+    background: none;
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  /* ── MONTO ── */
+  .monto-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .monto-prefix {
+    position: absolute;
+    left: 14px;
+    color: var(--muted);
+    font-size: 15px;
+    pointer-events: none;
+  }
+  .monto-wrap input { padding-left: 28px; }
+
+  /* ── ROW ── */
+  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  /* ── TOGGLE INGRESO/EGRESO ── */
+  .toggle-wrap {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .toggle-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--muted);
+    cursor: pointer;
+    font-family: var(--font);
+    font-size: 14px;
+    font-weight: 600;
+    padding: 11px;
+    text-align: center;
+    transition: all .15s;
+  }
+  .toggle-btn.active-egreso {
+    background: rgba(233,69,96,.15);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .toggle-btn.active-ingreso {
+    background: rgba(46,204,113,.15);
+    border-color: var(--green);
+    color: var(--green);
+  }
+
+  /* ── SUBMIT ── */
+  .btn-submit {
+    width: 100%;
+    background: var(--accent);
+    border: none;
+    border-radius: var(--radius);
+    color: #fff;
+    cursor: pointer;
+    font-family: var(--font);
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: .3px;
+    padding: 16px;
+    transition: opacity .2s, transform .1s;
+    margin-top: 4px;
+  }
+  .btn-submit:hover { opacity: .9; }
+  .btn-submit:active { transform: scale(.98); }
+  .btn-submit:disabled { opacity: .5; cursor: not-allowed; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--green);
+    color: #fff;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 12px 24px;
+    border-radius: 40px;
+    box-shadow: 0 4px 20px rgba(0,0,0,.4);
+    transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+    z-index: 999;
+    white-space: nowrap;
+  }
+  .toast.error { background: var(--accent); }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ── FECHA DISPLAY ── */
+  .fecha-display {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 15px;
+    color: var(--text);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .fecha-display .icon { color: var(--muted); font-size: 18px; }
+  input[type="date"] { display: none; }
+
+  /* ── SPINNER ── */
+  .spinner {
+    display: inline-block;
+    width: 18px; height: 18px;
+    border: 2px solid rgba(255,255,255,.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin .6s linear infinite;
+    vertical-align: middle;
+    margin-right: 8px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── CONFIG BANNER ── */
+  .config-banner {
+    background: rgba(233,69,96,.1);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .config-banner strong { color: var(--accent); }
+  .config-banner input {
+    margin-top: 8px;
+    font-size: 13px;
+    padding: 8px 12px;
+  }
+  .config-banner .btn-small {
+    margin-top: 8px;
+    background: var(--accent);
+    border: none;
+    border-radius: 6px;
+    color: #fff;
+    cursor: pointer;
+    font-family: var(--font);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 16px;
+    width: 100%;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Capital<span>Bus</span></div>
+  <div class="badge">STAGING</div>
+</header>
+
+<main>
+
+  <!-- Config: URL del Apps Script -->
+  <div class="config-banner" id="configBanner">
+    <strong>⚙️ Configuración inicial</strong><br>
+    Pega aquí la URL de tu Apps Script publicado:
+    <input type="url" id="scriptUrl" placeholder="https://script.google.com/macros/s/..." autocomplete="off">
+    <button class="btn-small" onclick="saveConfig()">Guardar URL</button>
+  </div>
+
+  <!-- Fecha -->
+  <div class="card">
+    <div class="card-title">📅 Fecha</div>
+    <div class="field">
+      <div class="fecha-display" onclick="document.getElementById('fechaInput').showPicker()">
+        <span id="fechaLabel">Hoy</span>
+        <span class="icon">▾</span>
+      </div>
+      <input type="date" id="fechaInput" onchange="updateFecha()">
+    </div>
+  </div>
+
+  <!-- Establecimiento -->
+  <div class="card">
+    <div class="card-title">🏪 Establecimiento</div>
+    <div class="field">
+      <div class="autocomplete-wrap">
+        <input type="text" id="estInput" placeholder="Buscar establecimiento..." autocomplete="off"
+               oninput="filterEstablecimientos()" onkeydown="handleAcKey(event)">
+        <div class="autocomplete-list" id="acList"></div>
+      </div>
+    </div>
+    <div class="row-2">
+      <div class="field">
+        <label>Detalles</label>
+        <input type="text" id="detalles" placeholder="ej: ENERO, CUOTA 3/12...">
+      </div>
+      <div class="field">
+        <label>Info adicional</label>
+        <input type="text" id="info" placeholder="ej: ref, número...">
+      </div>
+    </div>
+  </div>
+
+  <!-- Monto y tipo -->
+  <div class="card">
+    <div class="card-title">💰 Monto</div>
+    <div class="field">
+      <label>Ingreso o Egreso</label>
+      <div class="toggle-wrap">
+        <button class="toggle-btn active-egreso" id="btnEgreso" onclick="setTipo('EGRESO')">↓ Egreso</button>
+        <button class="toggle-btn" id="btnIngreso" onclick="setTipo('INGRESO')">↑ Ingreso</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>Monto</label>
+      <div class="monto-wrap">
+        <span class="monto-prefix">$</span>
+        <input type="number" id="monto" placeholder="0" inputmode="numeric" min="0">
+      </div>
+    </div>
+    <div class="row-2">
+      <div class="field">
+        <label>Forma de pago</label>
+        <select id="formaPago" onchange="updateEmisores()">
+          <option value="">— Seleccionar —</option>
+          <option>EFECTIVO</option>
+          <option>DÉBITO</option>
+          <option>TARJETA DE CRÉDITO</option>
+          <option>PSE</option>
+          <option>TRANSFERENCIA</option>
+          <option>INTERESES</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Emisor / Tarjeta</label>
+        <select id="emisor">
+          <option value="">— Opcional —</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Categoría -->
+  <div class="card">
+    <div class="card-title">📂 Categoría</div>
+    <div class="field">
+      <label>Cuenta presupuestada</label>
+      <select id="cuentaPresupuestada" onchange="updateDetalladas()">
+        <option value="">— Seleccionar —</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Cuenta detallada</label>
+      <select id="cuentaDetallada">
+        <option value="">— Seleccionar —</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Ciudad / Locación</label>
+      <select id="locacion">
+        <option value="">— Seleccionar —</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Submit -->
+  <button class="btn-submit" id="btnSubmit" onclick="submitTransaction()">
+    Registrar transacción
+  </button>
+
+</main>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────
+
+const ESTABLECIMIENTOS = ["🍓 🍓 FRESAS SALVAJES","🍦POPSY HELADOS 🍨","🥑 AGUACATES DE LA ESQUINA","🥚 HUEVOS SANTA REYES","ACQUA NATACION","ACTIVIDAD CAPITALBUS","ADIDAS","ADRIANA XIMENA TORRES","AEROPUERTO BARRANQUILLA","AFICHES 3 X 20.000","AGENCIA DE VIAJES - OSSA Y ASOCIADOS","AGRÍCOLA Y VETERINARIA LUNAGRO","AHORRO PERSONAL","ALACENA EXPRESO PRINCIPAL - SALSAMENTARIA PLAZA OSPINA","ALBERT DAVID GÓMEZ","ALEJANDRA CARO ROCHA - RESERVA DE LA SIERRA SANTA MARTA","ALGODÓN DE AZÚCAR NOBSA","ALHAJA JOYERÍA Y RELOJERÍA CENTROCHÍA","ALIEXPRESS.COM","ALKOSTO","ALMACÉN SARALUZ","ALMIGHTY GYM","ALTOQUE - TERPEL","AMAZON","AMERICAN ARMY PAINTBALL","AMOR DULCE AMOR","ANA MARÍA ROJAS - HIJA DE RANDY","ANDRÉS CARNE DE RES","LA KOMILONA DE ANDRÉS","HOTEL IBIS","MIGO CHOLAOS","ROSQUILLAS CALEÑAS","SIRENA RESTAURANTE","TIRADITO RESTAURANTE","AIR CANADA","ALMACÉN DIVINO","SANTA VANIDAD","REDBUS","HOTEL TAMA REAL GRANADA CALI","ANIMALCENTER","AREPAS Y PATACOS","OBLEAS LA VILLA","LAVASECO MASTER - LAVADO DE TAPETES","DIGIMAGE","LUISA FERNANDA GUALTEROS - NEQUI 3142127602","PSICÓLOGA DINA LUZ ROMÁN ALVARADO","PRÉSTAMO LIBRANZA BBVA CHIQUIS 106MM","ANGIE RAMOS","APORTE COLABORACIÓN","APOYO CANTANTE TRANSMILENIO","APOYO PERSONA VULNERABLE","APPLE BILL","AQUÍ PERÚ RESTAURANTE - MOSQUERA","ARA","ARCARY SEGUROS","ARCHIE´S","AREPAS - GUAYABETAL","AREPAS VENTAQUEMADA","ARROZ CON LECHE - DON ÁNGEL","ARTESANÍAS LOS OCARROS","ARTESANÍAS NOBSA","ARTISTA CALLEJERO","ARTURO CALLE","ASADERO EN LA MESA CUNDINAMARCA","ASADERO LAS BRASAS - PLAZA OSPINA CHÍA","ASADICTOS","ASESORÍA CREDITICIA","AUTOPARTES SIETE DE AGOSTO","AUTOSERVICIO EL AHORRO","AUTOSERVICIO LA 14 - CHÍA","AUTOSERVICIO LA ECONOMÍA - PATIO AMÉRICAS","BABUCHAS COLEGIO","BANCO DAVIVIENDA","BANCO DE BOGOTÁ","BAÑOS NOBSA","BARATODO","BARF - COMIDA ORGÁNICA ATHENEA","BATH AND BODY WORK","BBVA","BBVA - RETIRO CAJERO ELECTRÓNICO","DAVIVIENDA - RETIRO CAJERO ELECTRÓNICO","BEEF MARKET LOCALES PINARES DE CHÍA","BELLA PIEL","BELLINI CUCINA RESTAURANTE","BERSHKA","BIBIANA MELO - DESODORANTE","BIG BBQ -PARQUE INFANTIL CENTROCHÍA","BISTECA E VINA - ZONA G","BISUTERÍA PIEDRITAS Y PEPAS","BOCA DEL LOBO RESTAURANTE","BOCADOS DEL PERÚ","BOLETERÍA CORFERIAS","BOSI","BOTONIA LANAS","BRASA ROJA ASADERO","Breakfast4you.com.co","BRILLOS PELUQUERIA FONTANAR","BROASTER Y CHISPA","BRYAN ACEVEDO - COLEGIO MONTECERVINO","BUFFALO WINGS","BUFFET GARDEN","BUKE PAN ARTESANAL","BUREO DANCE STUDIO","BURGER KING","BUSCALIBRE.COM","CABAÑA DE ALPINA","CABIFY","CAFÉ AMOR DE MUJER","CAFÉ DE LAS LETRAS","CAFÉ FILANDIA","CAFETERÍA NOBSA","CAJA SORPRESA","CALIMÍO","CALYPSO DEL CARIBE","CALZADO VENUS CHÍA","CAMISAS CARRERA 9 CALLE 17","CAMOZ DROGUERÍAS","CANAPRO","CANTINA LA 15","CAPITALBUS","CAPITALINO - GRAND HYATT","CÁQUEZA","CARBONARA","CARMEN DE APICALÁ","CARNES LA CANASTA","CARNICERÍA CLL 190 - COMIDA ATHENEA","CAROLINA ARBOLEDA - MONTECERVINO","CARTERS - BABY GANGA","CARULLA","CASA 32 - PINARES DE CHÍA (QUESOS)","CASA DE CAMBIO - DIVISAS","CASAIDEAS","CASATORO - FORD","CASCABEL","CASINO CAPITALBUS","CASIPRO ABOGADOS SAS - BANCO DE OCCIDENTE","CASTELLANA 104","CC BIMA","CC CENTRO CHÍA","CC FONTANAR","CC PARQUE LA COLINA","CC PLAZA DE LAS AMÉRICAS","CC SABANA PLAZA","CDA CHÍA","CEBA","CEENTIR SAS - TERAPIAS","CEJAS CALLE 140 ANGIE","CENTRAL CEVICHERÍA","CENTRO INTERNACIONAL DEL LIBRO","CENTRO MÉDICO DEL OLAYA","CENTRO VACACIONAL GUANÉ - CANAPRO","CÉSAR GARCÍA","CHIFLAS RESTAURANTE","CHINA FOOD","CHOCOLATES TON AMOUR","CHOPINAR","CHUK´E CHEESE","CHUZITOS GOURMET","CICLOTODO CARRERA 9 CHÍA","CIGARRERÍA CARRERA 9 - MAYES","CIMARRÓN DEL LLANO RESTAURANTE","CINE COLOMBIA","CINEMARK","CINÉPOLIS","CINNABON","CITYPARK","CLARO COMUNICACIONES","CLÍNICA BARRAQUER","CLÍNICA DEL COUNTRY","CLÍNICA MARLY","CLÍNICA MONSERRAT","CLÍNICA VETERINARIA VETAS","CÓCTEL DEL MAR RESTAURANTE","COLBÚFALA","COLEGIO MONTECERVINO","COLSUBSIDIO","COMIDA CHINA - CAJICÁ","COMISIÓN TARJETA","COMPRA AMBULANTE","COMPRA AMBULANTE - PLAYA","COMPRA OCASIONAL","COMPREMAS HS SAS CHÍA","CONTADOR JONATHAN MARTÍNEZ","COSECHAS JUGOS","COVINOC - BANCOLOMBIA","CRAZY TOWN - PARQUE VIDEOJUEGOS","CREPES AND WAFFLES","CREPES TO GO POKE","CRITERION RESTAURANTE","CRUZ VERDE DROGUERÍA","OVILLOS Y MADEJAS GUAYMARAL","CYRANO PASTELERÍA FRANCESA","D1 TIENDAS","DAFITI","DAFLORES.COM","DALE!","DALEROSAS.COM","DANCE STUDIO MC","DAVIPLATA","DAVIVIENDA","DAYSSE MORALES","DEBUT GANADERO PREMIUM","DECATHLON TIENDA DEPORTIVA","DECORACIONES FIESTA CHÍA","DERMATOLÓGICA","DESIGUAL","DI LUCCA","DIDI FOOD SERVICES","DIDO TIENDA DE MASCOTAS","DISCOS VICENTE - OMNICENTRO 19","DJ LA MESA","DOGGER","DOGKAT TIENDA DE MASCOTAS","DOLLARCITY","DOMINOS PIZZA","DON JEDIONDO RESTAURANTE","DORA MORALES","DR. KIDS PARQUE INFANTIL","DR. MARTENS","DR. ORLANDO RODRÍGUEZ","DR. SCHOLLS","DROGAS LA REBAJA","DROGUERÍA OCASIONAL","DROGUERÍA AGUACHICA","DROGUERÍA ALEMANA","DROGUERÍA CAFAM","DROGUERÍA CALLE 93. CARRERA 16","DROGUERÍA DE LA ESQUINA","DROGUERÍA JHONFARMA","DROGUERÍA LA ECONOMÍA","DROGUERÍA LOS PINOS - CHÍA","DROGUERÍA PASTEUR","DROGUERÍA SANTA MARTA","DROGUERÍA SUPER DESCUENTOS","DULCERÍA CENTRO CHÍA","DULCES DISTRIBUIDORA CHÍA","DULCES IMPORTADOS LA COLINA","DULCINEA - LA CANUTERÍA","DUNKIN DONUTS","eBay.COM","EL BOTALÓN ASADERO","EL CARNAL COMIDA MEXICANA","EL MALPENSANTE REVISTA","EL MARKET COLOMBIA - DUTY FREE","EL MORICHAL RESTAURANTE AGUACHICA","EL PAN DEL INDIO","EL PECHIRROJO ASADERO","EL PROVEEDOR - PESQUERA MORELOS BARRANQUILLA","EL VAQUERO PÓLVORA","ELA - STUDIO F","EMASIVO PATIO SAN ANDRÉS","EMI SERVICIOS MÉDICOS DOMICILIARIOS","EMMA MÍA","EMPANADAS DE LA CIMA","EMSERCHÍA","ENEL-CODENSA","ENVUELTOS GUAYMARAL","ESTACIÓN DE GASOLINA AV BOYACÁ CON 163","ÉXITO TIENDAS","EXPOARTESANÍAS 2023","EXPOTENIS CHÍA","FALABELLA","FAMAS CHÍA","AREPAISA DE MEDELLÍN","FOTOCOPIAS","PASTELERÍA Y DESAYUNOS LA FLORIDA","ALMACÉN DE ROPA NABLOS - PLAZA DE BOLÍVAR","FARMATODO","FAUSTO EDITORES CORFERIAS","FÉLIX CALDAS","FERRETERÍAS CHÍA","FICHAS JUEGOS SABANA PLAZA","FLORES GUAYMARAL","FLORISTERÍA CARRERA 9 CERCA A PLAZA OSPINA","FLORISTERÍA CHÍA - SRA. ELIZABETH","FLOTA CHÍA","FONDEMASIVO","FONDO DE CULTURA ECONÓMICO - PABELLÓN MÉXICO","FORD ESCAPE GBW989","FORD TALLERES","FOTO JAPÓN","FOTOFOTO","FRAMA 373 N2 - CENTROCHÍA","FREEPORT TENNIS","FRENESSI SERATTA","FRESAS CON CHOCOLATE CORFERIAS","FRISBY","FRUTERÍA PATTY","FRUTOS GRAN FRUVAR","FRUVER FRESCO ES LO NUESTRO","FRUVER LOS CHILACOS","FUNDACIÓN CARDIO INFANTIL","GAIA MARIANA - SANDER RANGEL","GALGUERÍAS PARA LLEVAR NOBSA","GAME BOX JUEGOS","GASEOSAS CORFERIAS","GASOLINA GBW989","GASOLINA RAV 4","GASTOPEDIATRA INFANTIL - ÁLVARO EDUARDO MARIÑO FORERO","GASTROCENTER - GLOBAL MEDICAL CENTER","GEF","GENTE DE PASTA","GOOGLE","GOYURT","GRASSHOPPER","GRUPO AMAZONATE SAS","GUANABANAZO.CO POSTRES CAJICÁ","GUANABANAZO CHÍA","GURUS PONTEVEDRA PANADERÍA CALLE 116","H&M TIENDA DE ROPA","HAMBURGUESAS EL CORRAL","HAMBURGUESERÍA COMIC","HAMPTON BY HILTON","HAPPY SHAKE","HBO PLUS","HELA'MIEL","HELADERÍA CENTROCHÍA","HELADOS ALEARTE NOBSA","HELIC DERMATOLOGÍA","HOLAFLY.COM","HOLIDAY INN EXPRESS","HOME SENTRY","HOMECENTER","HOMEÓPATA MARY GÓMEZ","HORNITOS PASTELERÍA","HOTELES ESTELAR","HOTELES SONESTÁ","HOTSMART EBANX","ICHIRAKU RAMÉN","IDIME - IMÁGENES DIAGNÓSTICAS MÉDICAS","IKEA","IMAGEN ORAL - ODONTOLOGÍA","ING. LUIS CARLOS GONZÁLEZ","INVERSIONES SÁNCHEZ - GASOLINA PLAZA OSPINA CHÍA","IPTV","IRISH PUB","iSHOP","JARDÍNES DEL RECUERDO","JENOS PIZZA","JHORBAM BOTAS","JORGE OROZCO - SANTA MARTA","JUAN VALDEZ CAFÉ","JUCA SUSHI","JULIANA MORALES","JUMBO TIENDAS","JUMP PARTY SALTARÍN IBAGUÉ","KANGAROO CAFÉ","KASHAKI BOGOTÁ","KAZOKU SUSHI","KEVIN´S JOYEROS","KFC","KIFLI","KO","KOAJ","KOKORIKO","KOLOR BEAUTY UÑAS","KRISTEL PIÑATAS MISCELÁNEA CHÍA","KTRONIX","KUTY PANADERÍA","LA BONGA DEL SINÚ","LA BRASA RESTAURANTE AGUACHICA","LA CARRETA - JAIME DUQUE","LA CHULA CAMPESTRE","LA EQUIDAD SEGUROS","LA FUENTE PIZZA - SUBA","LA GRAN PARRILLA BOYACENSE","LA GRANJA","LA HAMBURGUESERÍA","LA KASTA 106","LA LIBRERÍA DE ANA","LA MARÍA BURGER - NOBSA BOYACÁ","LA MESA (CUNDINAMARCA)","LA MINA","LA SANGUCHERÍA DE LUCHA","LA TERMINAL PARQUEADEROS","LA VACA QUE RÍE PARADOR","LABORATORIO DE INVESTIGACIÓN HORMONAL","LABORATORIO MÉDICO ECHAVARRÍA","LÁCTEOS TEQUENDAMA","LAIKA.COM","LANAS NOBSA","LAS OLLITAS DE LA ABUELA","LAS PINCHADAS BUCARAMANGA","LATIQUETERA.COM","LAVADO CARRO","LAVANDERÍA DOMICILIO","LECHONA EL GORDO","LECHONERÍA MI TOLIMA","LEÑOS RESTAURANTE","LEONARDO LOZANO ROJAS","LEVIS JEANS","LIBRERÍA NACIONAL","LÍCHIGO FRUTAS Y VERDURAS - CARRERA 9","LITTLE CESARS PIZZA","LOCALES PINARES RESERVADO","LOLA JEANS","LOS CHILACOS ASADERO","LOS TRES ELEFANTES","LUIS PIEDRAHITA - PROFESOR GUITARRA ELÉCTRICA","LUZ MERY MORALES - TÍA","LYKKE HELADERÍA ARTESANAL","MAESTRA BIBIANA RODRÍGUEZ","MAITHEA BARRAGÁN - ESO ME GUSTA!","MAMAYUU HELADO YOGUR","MARÍA ANGÉLICA CHÁVEZ - GIRARDOT","MARIACHIS SRA GRACIELA","MARIE ANTOINETTE RISTORANT","MARIO HERNÁNDEZ","MARISOL MÉNDEZ - GALLETAS NAVIDAD","MARLENE CHOCONTÁ - ALQUILER FINCA LA MESA","MASAJES ANGIE","MASATO Y ALMOJÁBANAS PAIPA","MCDONALDS","MÉDICO DOMICILIARIO","MEDIPIEL","MERCADO DE LAS PULGAS","MERCADOLIBRE.COM","MERCADOPAGO","MERCADOS EL GRANERO","MIC","MIC ROPA INFANTIL","MIDATACREDITO.COM","MILHOJAS VILLA DE LEYVA - PINARES","MIMOS HELADOS","MINISO","MINISTERIO DE RELACIONES EXTERIORES DE COLOMBIA","MISCELÁNEA CALLE 191 CON 9","MISCELÁNEA EN LA VICTORIA - CALLE 40 SUR","MISCELÁNEA ESQUINA CHILACOS","MISCELÁNEAS","MIU by Lina Hincapié","MOCHI MOCHI","MODISTA PINARES DE CHÍA","MOK SEGUROS","MONTALLANTAS","MORALEJA PASTELERÍA","MORÁNGEL SACOS DE NAVIDAD","MOVIES CAMISETAS","MOVISTAR HOGAR","MOVISTAR MÓVIL","MR MAGOO - CASA DE CAMBIO","MUBI","MULTIPARQUE","MUNDO AVENTURA PARQUES","MUNDO STORE","MUNDO TOYS","MUSEO DE ILUSIONES","MUSEO NACIONAL","MUSIC SOUND VASONI - SABANA PLAZA CHÍA","MUY RESTAURANTE","MVM ODONTOLOGÍA","MYRIAM CAMHI PASTELERÍA","NARANJAS GUAYMARAL","NATALIA DEL PILAR HOYOS","NATURAL STORES TIENDA NATURISTA","NEQUI","NETFLIX","NICOLUKAS","NINTENDO","NOTARÍAS","NU_BANK","NUEVA ESPERANZA COMIDA CHINA","OBLEAS SAN JERÓNIMO","OBLEAS TOLEDO","ODONTOLOGÍA COLSUBSIDIO","OKAN VETERINARIA","OLATE - 🍓 CON CHOCOLATE","OLÍMPICA TIENDAS","OMA CAFÉ","OSAKI BAZAAR - CHIA","OTORRINOLARINGOLOGÍA SABANA PARK","OTROS","OXXO TIENDAS","OYSHO","PALOS DE NOGAL","PAN PA YA","PANACHI","PANADERÍA EL PAN DEL SEÑOR","PANADERIA EL REAL MANÁ","PANAMERICANA LIBRERÍA","PANDEBONO DEL VALLE","PANDEBONOS CHÍA","PAPA JOHNS","PAPELERÍA DE LA ESQUINA","PAPELERÍA LULÚ","PAPELERÍA PINARES DE CHÍA","PAPELERÍA Y MISCELÁNEA LEO'S CHÍA","PARA ANGIE","PARA ANTONIA","PARA SALVADOR","PARA SRA GRACIELA","PARAMOUNT+","PARQUE LOS OCARROS","PARQUEADERO","PARQUEADERO CORFERIAS","PARROQUIA 20 DE JULIO","PARROQUIA NUESTRA SEÑORA DE BELÉN - FUSAGASUGÁ","PARROQUIA SANTA EDITH STEIN","PASTELERÍA SANTANDER","PASTELERÍA SOL Y LUNA","PAT PRIMO","PATAS Y BIGOTES VETERINARIA","PATITAS VETERINARIA","PEAJE","PEAJES RUTAS COLOMBIA","PELUQUERÍA Y SALÓN DE BELLEZA SANDRA BETANCOURT","PENGUIN RANDOM CORFERIAS","PEPE GANGA","PERFORACIÓN ARETES CENTROCHÍA","PESCADERÍA EL VELERO","PESQUERA JARAMILLO","PETER PAN ENSALADA DE FRUTAS","PHARMA JADE","PIETRA PIZZA GOURMET","PINARES DE CHÍA","PIQUETEADERO COGUA","PIQUETEADERO EL COGUANO","PIZZA HUT","PIZZA IBAGUÉ","PIZZA LA VICTORIA","PIZZA NOSTRA","PIZZERÍA LA MESA","PLACITA BOYACENSE SURTIFRUVER","PLAZA DE MERCADO CHÍA Y ALREDEDORES","PLAZA DE MERCADO PALOQUEMADO","PLEX","PLOMERO - ALFONSO GARZÓN","PLOMERO JOHN VARGAS","PLOMEROSYA.COM","POLLAS - APUESTAS - RIFAS","POR DEFINIR","POSTRES COGUA","PRESTAMO TARJETA DON ALEXANDER","PRESTO","PRICESMART","PRIMAX","PRIME VIDEO","PRINT YOUR PHOTO","PROCINAL","PROCINAL - CINE+","PROFAMILIA","PROFESORA DE INGLÉS","PROFESORA DE VIOLÍN","PROPINA","PROPINA DULCÍNEA","PROPINA DURUELO","PROPINA LOS CHILACOS","PROPINA SONESTA","PROPINA SUPERMERCADOS 1YA COORATIENDAS","PUEBLITO BOYACENSE","PULL&BEAR","PUNTOS CENCOSUD","PUPPIES MASCOTAS","QUINTA COCINA - COMIDA ORIENTAL","RADIOLOGÍA ORAL RX 93","RALPH LAUREN","RANCHÓN LLANERO","RAPPI.COM","RED AVAL - RETIRO CAJERO ELECTRÓNICO","BANCOLOMBIA - RETIRO CAJERO ELECTRÓNICO","REGALO FIESTA ANTONIA","REGALOSQUEHABLAN.COM","REPARACIÓN APPLE - MAC","REPUBLIK","RESTAURANTE EL POTRERO GOURMET","RESTAURANTE LA CUMBRE LA CALERA","RESTAURANTE LOS TORRES","RESTAURANTE MAR AZUL - SIBATÉ","RESTAURANTE PERUANO SABOR Y SAZÓN CHÍA","RESTAURANTE PRODUCTOS DEL MAR - DPTO MAGDALENA","RESTAURANTES","ROGER ESCOBAR","RYK RAMEN CALLE 72","SABOR A LEÑA","SAGRADO HOTEL AGUACHICA","SALITRE MÁGICO","SAN ANDRESITO","SAN JERÓNIMO HELADOS","SAN MARCOS","SANCHOS PIZZA","SANDWICHE QBANO","SANTA ELENA PASTELERÍA","SANTIAGO POTES","SARKU JAPAN","SECRETARÍA DE MOVILIDAD BOGOTÁ","SECRETARÍA HACIENDA BOGOTÁ","SECRETARÍA HACIENDA DE CHÍA","SEMILLAS Y FRUTOS SECOS LOS ALPES - PLAZA OSPINA CHÍA","SEÑORA DORA TUTA - MENSAJERA","SERATTA","SERVICIO DOMÉSTICO","SEVEN SEVEN","SHOPEE.COM","SIAMO CAFFE","SIMIT - FEDERACIÓN COLOMBIANA DE MUNICIPIOS","SIPOTE BURRITO","SKY ZONE","SOLICITUD PRÉSTAMO A TERCEROS","SOMBREROS DON SAMUEL","SPORTLINE TIENDA DEPORTIVA","SPOTIFY","SPRING STEP","SR WOK COMIDA ORIENTAL","STARBUCKS COFFEE","STATIONERYPOT.COM","STORIA D'AMORE","STRANGER TATTOO PIERCINGS","STUDIO F - ELA","SUBWAY","SUMMIT TRAMPOLINES","SUPERINTENDENCIA DE NOTARIADO Y REGISTRO","SUPERMERCADOS 1YA COORATIENDAS","SUPERMERCADOS D'HOY","SURA","SURA SALUD EPS","SURTIDORA DE AVES CHIFRITOS","SURTIPLAZA ACQUA IBAGUÉ","SWATCH TIENDA DE RELOJES","T4 COLOMBIA","TALLER - CARRERA 66A CALLE 12","TALLERES BONAPARTE","TAQUILLALIVE.COM","TARJETA ALKOSTO","TARJETA AVVILLAS","TARJETA BANCO DE BOGOTÁ","TARJETA BANCOLOMBIA DORADA - AMPARADA","TARJETA BBVA","TARJETA CANAPRO","TARJETA DAVIVIENDA","TARJETA FALABELLA","TARJETA NU ANGIE","TARJETA NU EDWIN","TARJETA SERFINANZA","TARJETA SCOTIABANK COLPATRIA","TAXI","TEATRO ARLEQUÍN","TÉCNICO GAS - JOHN BELTRÁN MORALES","TELAS LAFAYETTE","TELAS SABANA PLAZA","TEMU","TENNIS","THE KITTY STORE","THE TIKI HUT PASTAS Y PIZZAS","TIENDA CARRERA 9","TIENDA CASA LA VICTORIA","TIENDA DE LAS GORDAS","TIENDA DE MOCHILAS - PALOMINO - GUAJIRA","TIENDA DEL PLANETARIO","TIENDA DEPORTIVA IBAGUÉ","TIENDA LEGO","TIENDA MERAKI - HAMA BEADS","TIENDA MUSICAL CENTRO CHÍA","TIENDA MUSICAL SABANA PLAZA","TIENDA PANINI - LÁMINAS ÁLBUM","TIERRA RESTAURANTE","TIGO","TINGACA PESCADERÍA SABANA PLAZA","TINTURAS CHÍA","TÍO NÉSTOR MORALES","TO COINK","TO SHEIN by EBANX","TODO A MIL - PLAZA OSPINA","TODO ES COLOR DI ROSA","TODOPANCHÍA","TORNAMESA","TORTAS Y PASTELERÍA FRANCESA CALLE 82","TOSTAO","TOTTO","TOUCHÉ LINGERIE","TOY SMART","TOYOTA RAV4 JXZ782","TRANQI.COM - MULTA","TRANSFIYA","TRANSMILENIO RECARGA","TRATAMIENTOS CABELLO QUERATINA","TSUKI SUSHI","TUBOLETA.COM","TUCENTRALVISAS.COM","UBER","US EMBASSY","VALENTINA GÓMEZ MORALES","VALET PARKING","VANTI","VARIEDADES CHÍA","VÉLEZ CUEROS","VENDOMATIC","VICTORIA´S SECRET","VISTA ÓPTICA","VIT-FIT TIENDA NATURAL","VIVA BRASIL RODIZIO","WABY SUSHI Y TEPPANYAKI","WOK","WOM","WOMEN SECRET","WWW.FARFETCH.COM","YOUTUBE PREMIUM","ZAPATERÍA EN CHÍA","***POR INSCRIBIR*** TEMPORAL"];
+
+const CATEGORIAS = {
+  "SALARIOS": ["INGRESO"],
+  "PENSIÓN Y GASTOS COLEGIO": ["PENSIÓN","GASTOS COLEGIO"],
+  "CURSOS EXTRACURRICULARES": ["BAILE","PARKOUR","NATACIÓN"],
+  "LEASING": ["LEASING"],
+  "ADMINISTRACIÓN PINARES": ["ADMINISTRACIÓN PINARES","ALQUILER SALÓN"],
+  "SUPERMERCADOS": ["SUPERMERCADOS","PLAZA DE MERCADO","TIENDAS"],
+  "MASCOTA": ["COMIDA MASCOTA","SALUD MASCOTA","JUGUETE MASCOTA"],
+  "TARJETAS DE CRÉDITO": ["BBVA VISA INFINITY 8449","BBVA MASTERCARD BLACK 1488","BBVA MASTERCARD GOLD 9969","BBVA VISA INFINITY 2318","DAVIVIENDA VISA","BANCOLOMBIA MASTERCARD DORADA - AMPARADA","NU MASTERCARD EDWIN","NU MASTERCARD ANGIE","BANCO DE BOGOTÁ VISA","BANCO DE BOGOTÁ MASTERCARD","CANAPRO VISA","FALABELLA MASTERCARD"],
+  "GASTOS FINANCIEROS": ["INTERESES TARJETAS DE CRÉDITO","INTERESES CRÉDITOS BANCARIOS","CUOTA TARJETA DE MANEJO","CUOTA AVANCE"],
+  "GAS": ["SERVICIOS PÚBLICOS"],
+  "AGUA": ["SERVICIOS PÚBLICOS"],
+  "LUZ": ["SERVICIOS PÚBLICOS"],
+  "SUSCRIPCIONES": ["SUSCRIPCIONES","TELEVISIÓN STREAMING","APPLE ONE 200 GB","APPLE ONE 2 TB"],
+  "CELULARES": ["CELULARES"],
+  "MOVISTAR ANGIE": ["MOVISTAR ANGIE"],
+  "GASOLINA": ["RAV 4","FORD ESCAPE"],
+  "RESTAURANTES": ["RESTAURANTES","SUSHI","COMIDA RÁPIDA","HAMBURGUESAS","ENSALADAS","PASTAS","PIZZA","POLLO ASADO","DOMICILIO"],
+  "CITAS MÉDICAS": ["CITAS MÉDICAS","CIRUGÍAS Y PROCEDIMIENTOS","ODONTOLOGÍA","TERAPIAS","EXÁMENES"],
+  "DROGUERÍA, MEDICAMENTOS E HIGIENE": ["MEDICAMENTOS","ASEO E HIGIENE","SALÓN DE BELLEZA","COSMÉTICOS"],
+  "TURISMO": ["TURISMO"],
+  "ROPA Y ZAPATOS": ["ROPA","ZAPATOS","ACCESORIOS"],
+  "CAFETERÍAS Y PANADERÍAS": ["CAFETERÍAS","TORTAS Y PASTELERÍA","PANADERÍAS"],
+  "TAXIS Y MOVILIDAD": ["TAXIS EN CHÍA","TAXIS EN BOGOTÁ","TAXIS POR APLICACIÓN","RUTA ESCOLAR","FLOTAS INTERMUNICIPALES"],
+  "CRÉDITOS BANCOS": ["CRÉDITOS BANCOS"],
+  "CULTURA, RECREACIÓN Y DEPORTES": ["CULTURA","RECREACIÓN","CINE","TEATRO","MAQUINITAS","INFLABLES","JUEGOS Y MANUALIDADES","CONCIERTOS","DEPORTES"],
+  "MESADAS - GASTOS DIARIOS Y VARIOS": ["GASTOS DIARIOS","MESADAS","VARIOS"],
+  "GALGUERÍAS, BEBIDAS Y HELADOS": ["GALGUERÍAS","GASEOSAS","HELADOS"],
+  "LIBROS, MÚSICA Y REVISTAS": ["LIBROS","DISCOS","REVISTAS"],
+  "PAPELERÍA, REGALOS Y MISCELÁNEA": ["PAPELERÍA","REGALOS","MISCELÁNEA","COSAS CURIOSAS","VARIEDADES","JOYAS Y ACCESORIOS"],
+  "PEAJES Y PARQUEADEROS": ["PEAJES","PARQUEADEROS"],
+  "IMPUESTOS": ["GMF - 4 X 1000","PREDIAL","VEHÍCULO"],
+  "MEJORAS, MANTENIMIENTO Y REPARACIÓN CASA": ["MEJORAS","MANTENIMIENTO","REPARACIÓN CASA"],
+  "PÓLIZAS": ["PÓLIZAS"],
+  "SERVICIO DOMÉSTICO": ["ASEO GENERAL CASA","PLANCHADO"],
+  "AHORRO": ["AHORRO"],
+  "FLORISTERÍA": ["FLORISTERÍA"],
+  "TECNOLOGÍA": ["COMPRA CELULARES"],
+  "DEUDAS CON TERCEROS": ["DEUDAS CON TERCEROS"],
+  "TRÁMITES": ["NOTARÍAS","COMPARENDOS"],
+  "PROPINAS Y DONACIONES": ["PROPINAS","DONACIONES"],
+  "LÍCORES Y BEBIDAS ALCOHÓLICAS": ["LÍCORES","CIGARRILLOS"],
+  "HOBBIES": ["HOBBIES"],
+  "COMPRA DE DIVISAS": ["COMPRA DE DIVISAS"],
+  "RECARGA": ["CONSIGNACIÓN"],
+};
+
+const CIUDADES = ["AGUACHICA","BARBOSA","BARRRANQUILLA","BOGOTÁ","BRICEÑO","BUCARAMANGA","CAJAMARCA","CAJICÁ","CALI","CARMEN DE APICALÁ","CHÍA","COTA","GIRARDOT","IBAGUÉ","LA MESA","MOSQUERA","NOBSA","OTRO","PERSONAL","SAN GIL","SANTA MARTA","SILVANIA","SOPÓ","VENTAQUEMADA","VILLAVICENCIO","VIRTUAL","ZIPAQUIRÁ"];
+
+const EMISORES_TC = ["TC BBVA VISA INFINITY","TC BBVA MASTERCARD BLACK","TC BBVA MASTERCARD GOLD","TC BBVA VISA ANGIE","TC DAVIVIENDA","TC BANCOLOMBIA DORADA","TC NU EDWIN","TC NU ANGIE","TC BANCO DE BOGOTÁ VISA EDWIN","TC BANCO DE BOGOTÁ MASTERCARD ANGIE","TC CANAPRO","TC FALABELLA ANGIE","TC FALABELLA EDWIN","TC SERFINANZA","TC SCOTIABANK COLPATRIA","TC ALKOSTO","TC AVVILLAS"];
+const EMISORES_DEBITO = ["BBVA DÉBITO","DAVIVIENDA DÉBITO","NEQUI","DAVIPLATA","DALE!"];
+
+// ── STATE ──────────────────────────────────────────────────────
+let selectedEstablecimiento = '';
+let tipoTransaccion = 'EGRESO';
+let acIndex = -1;
+let acFiltered = [];
+let scriptUrl = localStorage.getItem('cb_script_url') || '';
+
+// ── INIT ──────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  // Fecha default: hoy
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const dd = String(today.getDate()).padStart(2, '0');
+  document.getElementById('fechaInput').value = `${yyyy}-${mm}-${dd}`;
+  updateFecha();
+
+  // Mostrar/ocultar config banner
+  if (scriptUrl) {
+    document.getElementById('configBanner').style.display = 'none';
+  } else {
+    document.getElementById('scriptUrl').value = scriptUrl;
+  }
+
+  // Poblar selects
+  poblarSelect('cuentaPresupuestada', Object.keys(CATEGORIAS));
+  poblarSelect('locacion', CIUDADES);
+
+  // Ciudad default: CHÍA
+  document.getElementById('locacion').value = 'CHÍA';
+});
+
+function poblarSelect(id, opciones) {
+  const sel = document.getElementById(id);
+  opciones.forEach(op => {
+    const opt = document.createElement('option');
+    opt.value = op;
+    opt.textContent = op;
+    sel.appendChild(opt);
+  });
+}
+
+// ── CONFIG ──────────────────────────────────────────────────────
+function saveConfig() {
+  const url = document.getElementById('scriptUrl').value.trim();
+  if (!url.startsWith('https://script.google.com')) {
+    showToast('URL inválida', true);
+    return;
+  }
+  scriptUrl = url;
+  localStorage.setItem('cb_script_url', url);
+  document.getElementById('configBanner').style.display = 'none';
+  showToast('URL guardada ✓');
+}
+
+// ── FECHA ──────────────────────────────────────────────────────
+function updateFecha() {
+  const val = document.getElementById('fechaInput').value;
+  if (!val) return;
+  const [y, m, d] = val.split('-');
+  const dateObj = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+  const dias = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+  const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  document.getElementById('fechaLabel').textContent =
+    `${dias[dateObj.getDay()]} ${parseInt(d)} de ${meses[parseInt(m)-1]} de ${y}`;
+}
+
+function getFechaFormatted() {
+  const val = document.getElementById('fechaInput').value;
+  const [y, m, d] = val.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+// ── AUTOCOMPLETE ──────────────────────────────────────────────
+function filterEstablecimientos() {
+  const q = document.getElementById('estInput').value.trim().toLowerCase();
+  const list = document.getElementById('acList');
+  acIndex = -1;
+
+  if (q.length < 1) {
+    list.classList.remove('open');
+    return;
+  }
+
+  acFiltered = ESTABLECIMIENTOS.filter(e =>
+    e.toLowerCase().includes(q)
+  ).slice(0, 12);
+
+  if (acFiltered.length === 0) {
+    list.classList.remove('open');
+    return;
+  }
+
+  list.innerHTML = acFiltered.map((item, i) => {
+    const idx = item.toLowerCase().indexOf(q);
+    const marked = item.slice(0, idx) +
+      '<mark>' + item.slice(idx, idx + q.length) + '</mark>' +
+      item.slice(idx + q.length);
+    return `<div class="ac-item" data-i="${i}" onclick="selectEst(${i})">${marked}</div>`;
+  }).join('');
+
+  list.classList.add('open');
+}
+
+function selectEst(i) {
+  selectedEstablecimiento = acFiltered[i];
+  document.getElementById('estInput').value = selectedEstablecimiento;
+  document.getElementById('acList').classList.remove('open');
+}
+
+function handleAcKey(e) {
+  const list = document.getElementById('acList');
+  const items = list.querySelectorAll('.ac-item');
+  if (e.key === 'ArrowDown') {
+    acIndex = Math.min(acIndex + 1, acFiltered.length - 1);
+  } else if (e.key === 'ArrowUp') {
+    acIndex = Math.max(acIndex - 1, 0);
+  } else if (e.key === 'Enter' && acIndex >= 0) {
+    selectEst(acIndex);
+    e.preventDefault();
+    return;
+  } else if (e.key === 'Escape') {
+    list.classList.remove('open');
+    return;
+  }
+  items.forEach((el, i) => el.classList.toggle('selected', i === acIndex));
+}
+
+// Cerrar autocomplete al click fuera
+document.addEventListener('click', e => {
+  if (!e.target.closest('.autocomplete-wrap')) {
+    document.getElementById('acList').classList.remove('open');
+    if (!selectedEstablecimiento && document.getElementById('estInput').value) {
+      selectedEstablecimiento = document.getElementById('estInput').value;
+    }
+  }
+});
+
+// ── TIPO ──────────────────────────────────────────────────────
+function setTipo(tipo) {
+  tipoTransaccion = tipo;
+  document.getElementById('btnEgreso').className = 'toggle-btn' + (tipo === 'EGRESO' ? ' active-egreso' : '');
+  document.getElementById('btnIngreso').className = 'toggle-btn' + (tipo === 'INGRESO' ? ' active-ingreso' : '');
+}
+
+// ── EMISORES ──────────────────────────────────────────────────
+function updateEmisores() {
+  const forma = document.getElementById('formaPago').value;
+  const sel = document.getElementById('emisor');
+  sel.innerHTML = '<option value="">— Opcional —</option>';
+  let lista = [];
+  if (forma === 'TARJETA DE CRÉDITO') lista = EMISORES_TC;
+  else if (forma === 'DÉBITO') lista = EMISORES_DEBITO;
+  lista.forEach(e => {
+    const opt = document.createElement('option');
+    opt.value = e; opt.textContent = e;
+    sel.appendChild(opt);
+  });
+}
+
+// ── CATEGORÍAS ──────────────────────────────────────────────────
+function updateDetalladas() {
+  const presup = document.getElementById('cuentaPresupuestada').value;
+  const sel = document.getElementById('cuentaDetallada');
+  sel.innerHTML = '<option value="">— Seleccionar —</option>';
+  const lista = CATEGORIAS[presup] || [];
+  lista.forEach(d => {
+    const opt = document.createElement('option');
+    opt.value = d; opt.textContent = d;
+    sel.appendChild(opt);
+  });
+  if (lista.length === 1) sel.value = lista[0];
+}
+
+// ── SUBMIT ──────────────────────────────────────────────────────
+async function submitTransaction() {
+  // Validar
+  const estVal = document.getElementById('estInput').value.trim() || selectedEstablecimiento;
+  const monto = document.getElementById('monto').value;
+  const formaPago = document.getElementById('formaPago').value;
+  const cuentaPresupuestada = document.getElementById('cuentaPresupuestada').value;
+  const cuentaDetallada = document.getElementById('cuentaDetallada').value;
+  const locacion = document.getElementById('locacion').value;
+
+  if (!estVal) { showToast('Falta el establecimiento', true); return; }
+  if (!monto || parseFloat(monto) <= 0) { showToast('Falta el monto', true); return; }
+  if (!formaPago) { showToast('Selecciona forma de pago', true); return; }
+  if (!cuentaPresupuestada) { showToast('Selecciona la cuenta presupuestada', true); return; }
+  if (!locacion) { showToast('Selecciona la ciudad', true); return; }
+
+  if (!scriptUrl) {
+    document.getElementById('configBanner').style.display = 'block';
+    showToast('Configura la URL del Apps Script primero', true);
+    return;
+  }
+
+  const btn = document.getElementById('btnSubmit');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Guardando...';
+
+  const montoFinal = tipoTransaccion === 'EGRESO' ? -Math.abs(parseFloat(monto)) : Math.abs(parseFloat(monto));
+
+  const payload = {
+    fecha: getFechaFormatted(),
+    establecimiento: estVal,
+    detalles: document.getElementById('detalles').value.trim(),
+    info: document.getElementById('info').value.trim(),
+    locacion,
+    cuentaPresupuestada,
+    cuentaDetallada,
+    ingresoEgreso: tipoTransaccion,
+    monto: montoFinal,
+    formaPago,
+    emisor: document.getElementById('emisor').value,
+  };
+
+  try {
+    const res = await fetch(scriptUrl, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      showToast(`✓ Guardado en fila ${data.row}`);
+      resetForm();
+    } else {
+      showToast('Error: ' + data.error, true);
+    }
+  } catch (err) {
+    showToast('Error de conexión', true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Registrar transacción';
+  }
+}
+
+function resetForm() {
+  document.getElementById('estInput').value = '';
+  selectedEstablecimiento = '';
+  document.getElementById('detalles').value = '';
+  document.getElementById('info').value = '';
+  document.getElementById('monto').value = '';
+  document.getElementById('formaPago').value = '';
+  document.getElementById('emisor').innerHTML = '<option value="">— Opcional —</option>';
+  document.getElementById('cuentaPresupuestada').value = '';
+  document.getElementById('cuentaDetallada').innerHTML = '<option value="">— Seleccionar —</option>';
+  document.getElementById('locacion').value = 'CHÍA';
+  setTipo('EGRESO');
+  // Reset fecha a hoy
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const dd = String(today.getDate()).padStart(2, '0');
+  document.getElementById('fechaInput').value = `${yyyy}-${mm}-${dd}`;
+  updateFecha();
+}
+
+// ── TOAST ──────────────────────────────────────────────────────
+function showToast(msg, isError = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast' + (isError ? ' error' : '');
+  setTimeout(() => t.classList.add('show'), 10);
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>
