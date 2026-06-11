@@ -728,49 +728,26 @@ function resetForm() {
   updateFecha();
 }
 
-// ── POST VIA IFRAME (workaround CORS con Apps Script) ──────────
+// ── POST VIA IFRAME GET (workaround CORS con Apps Script) ─────
+// Apps Script bloquea POST con fetch desde dominios externos.
+// Enviamos los datos como parámetro GET en un iframe oculto.
+// doGet en el script los recibe y guarda en Staging.
 function postViaIframe(url, payload) {
-  return new Promise((resolve, reject) => {
-    // Crear iframe oculto
+  return new Promise((resolve) => {
+    const encoded = encodeURIComponent(JSON.stringify(payload));
+    const fullUrl = url + '?action=save&payload=' + encoded;
+
     const iframe = document.createElement('iframe');
-    iframe.name = 'cb_iframe_' + Date.now();
     iframe.style.display = 'none';
+    iframe.src = fullUrl;
     document.body.appendChild(iframe);
 
-    // Crear form que apunta al iframe
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = url;
-    form.target = iframe.name;
-    form.style.display = 'none';
-
-    // Serializar payload como campo único JSON
-    const input = document.createElement('input');
-    input.type = 'hidden';
-    input.name = 'payload';
-    input.value = JSON.stringify(payload);
-    form.appendChild(input);
-
-    document.body.appendChild(form);
-
-    // Timeout de seguridad: 8 segundos
-    const timeout = setTimeout(() => {
-      cleanup();
-      resolve(); // resolvemos igual — no podemos leer la respuesta por CORS
-    }, 8000);
-
-    iframe.onload = () => {
-      clearTimeout(timeout);
-      cleanup();
+    const done = () => {
+      try { document.body.removeChild(iframe); } catch(e) {}
       resolve();
     };
-
-    function cleanup() {
-      try { document.body.removeChild(form); } catch(e) {}
-      try { document.body.removeChild(iframe); } catch(e) {}
-    }
-
-    form.submit();
+    iframe.onload = done;
+    setTimeout(done, 10000);
   });
 }
 
